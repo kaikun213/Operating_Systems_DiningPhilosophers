@@ -1,4 +1,5 @@
 
+
 public class RunnablePhilosopher implements Runnable {
 	
 	Philosopher philosopher;

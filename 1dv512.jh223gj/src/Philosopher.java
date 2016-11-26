@@ -7,6 +7,7 @@ public class Philosopher {
 	
 	public static final File logFile = new File("src/Log.txt");
 	public static FileWriter log;
+	public static long startTime;
 
 	
 	enum State{
@@ -23,7 +24,9 @@ public class Philosopher {
 	private int numberOfThinkingTime;
 	private int numberOfHungry;
 	private int numberOfHungryTime;
+	private long seed = 1000000;	// default one million
 	
+
 	public Philosopher(int id){
 		this.id = id;
 		status = State.THINKING;
@@ -66,19 +69,19 @@ public class Philosopher {
 	}
 	
 	public void think(){
-		waitRandom(State.THINKING);
+		int time = waitRandom(State.THINKING);
 		numberOfThinking++;
 		try {
-			log.write("Philosopher_"+id+" is " + State.THINKING + "\n");
+			log.write((System.currentTimeMillis()-startTime) + "ms : Philosopher_"+id+" is " + State.THINKING + " for " + time + "\n");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
 	public void eat(){
-		waitRandom(State.EATING);
+		int time = waitRandom(State.EATING);
 		numberOfEating++;
 		try {
-			log.write("Philosopher_"+id+" is " + State.EATING + "\n");
+			log.write((System.currentTimeMillis()-startTime) + "ms : Philosopher_"+id+" is " + State.EATING +  " for " + time + "\n");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -86,14 +89,14 @@ public class Philosopher {
 	public void hungry(){
 		numberOfHungry++;
 		try {
-			log.write("Philosopher_"+id+" is " + State.HUNGRY + "\n");
+			log.write((System.currentTimeMillis()-startTime) + "ms : Philosopher_"+id+" is " + State.HUNGRY + "\n");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
 	
-	private void waitRandom(State status){
-		Random rand = new Random();
+	private int waitRandom(State status){
+		Random rand = new Random(seed);
 		int time = rand.nextInt(10)+1;
 		try {
 			Thread.sleep(time);
@@ -107,7 +110,34 @@ public class Philosopher {
 		else if (status == State.EATING){
 			numberOfEatingTime += time;
 		}
+		return time;
 	}
+
+	public void setSeed(long seed) {
+		this.seed = seed;
+	}
+	
+	// debug
+	public int getNumberOfEating() {
+		return numberOfEating;
+	}
+	public int getNumberOfEatingTime() {
+		return numberOfEatingTime;
+	}
+	public int getNumberOfThinking() {
+		return numberOfThinking;
+	}
+	public int getNumberOfThinkingTime() {
+		return numberOfThinkingTime;
+	}
+	public int getNumberOfHungry() {
+		return numberOfHungry;
+	}
+	public int getNumberOfHungryTime() {
+		return numberOfHungryTime;
+	}
+
+
 	
 		
 	
