@@ -8,3 +8,7 @@
 /ReadMe.txt
 /RunnablePhilosopher.class
 /utilities/
+/IDeadlockHandler.class
+/DeadlockDetector.class
+/DeadlockConsoleHandler.class
+/DeadlockDetector$1.class

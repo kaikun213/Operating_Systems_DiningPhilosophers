@@ -72,7 +72,9 @@ public class Philosopher {
 		int time = waitRandom(State.THINKING);
 		numberOfThinking++;
 		try {
-			log.write((System.currentTimeMillis()-startTime) + "ms : Philosopher_"+id+" is " + State.THINKING + " for " + time + "\n");
+			synchronized (logFile){
+				log.write((System.currentTimeMillis()-startTime) + "ms : Philosopher_"+id+" is " + State.THINKING + " for " + time + "\n");
+			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -81,7 +83,9 @@ public class Philosopher {
 		int time = waitRandom(State.EATING);
 		numberOfEating++;
 		try {
-			log.write((System.currentTimeMillis()-startTime) + "ms : Philosopher_"+id+" is " + State.EATING +  " for " + time + "\n");
+			synchronized (logFile){
+				log.write((System.currentTimeMillis()-startTime) + "ms : Philosopher_"+id+" is " + State.EATING +  " for " + time + "\n");
+			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -89,7 +93,9 @@ public class Philosopher {
 	public void hungry(){
 		numberOfHungry++;
 		try {
-			log.write((System.currentTimeMillis()-startTime) + "ms : Philosopher_"+id+" is " + State.HUNGRY + "\n");
+			synchronized (logFile){
+				log.write((System.currentTimeMillis()-startTime) + "ms : Philosopher_"+id+" is " + State.HUNGRY + "\n");
+			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

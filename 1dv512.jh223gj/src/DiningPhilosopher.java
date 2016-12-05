@@ -16,6 +16,7 @@ public class DiningPhilosopher {
 	private ArrayList<Chopstick> chopsticks;
 	private int simulationTime;			// in ms
 	ExecutorService exec;
+	DeadlockDetector deadlockDetector;
 	ThreadMXBean threadTool;
 
 	
@@ -44,6 +45,8 @@ public class DiningPhilosopher {
 		}
 		// initialize threads
 		exec = Executors.newFixedThreadPool(5);
+		//initialize deadlockhandler
+		deadlockDetector = new DeadlockDetector(new DeadlockConsoleHandler(), 5, TimeUnit.SECONDS);
 		// initialize logfile
 		try {
 			// clear content for new logs
@@ -60,6 +63,7 @@ public class DiningPhilosopher {
 	}
 	
 	public void start(){
+		// start philosophers 
 		for (int i = 0; i<5; i++){
 			exec.submit(new RunnablePhilosopher(philosophers.get(i)) {
 				public void run(){
@@ -71,14 +75,14 @@ public class DiningPhilosopher {
 				}
 			});
 		}
-		exec.shutdown(); //stop accepting new tasks
-
+		// start deadlock-detection
+		deadlockDetector.start();
+		
+		//stop accepting new tasks
+		exec.shutdown(); 
 		try {
-			Thread.sleep(10000); 		// sleep 10 secs to write to file
 			// waits simulationTime to finish the tasks
 			exec.awaitTermination(simulationTime, TimeUnit.MILLISECONDS); 
-			// search for deadlocks
-			detectDeadLock();
 		} catch (InterruptedException e) {
 			// e.printStackTrace(); sleep threads will be interrupted
 		}
@@ -114,26 +118,5 @@ public class DiningPhilosopher {
 		return (chopsticks.get(i));
 	}
 	
-	private void detectDeadLock(){		
-		long[] deadThreads = threadTool.findDeadlockedThreads();
-		
-		if (deadThreads != null){
-			// DEADLOCK
-			try {
-				Philosopher.log.write("DEADLOCK after" + (System.currentTimeMillis()-Philosopher.startTime) + "ms");
-				System.out.println("DEADLOCK after" + (System.currentTimeMillis()-Philosopher.startTime) + "ms");
-				for (int i=0;i<deadThreads.length;i++){
-					System.out.println("DeadThread id's: " + deadThreads[i]);
-					Philosopher.log.write("DeadThread id's: " + deadThreads[i]);
-				}
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-			
-			// shutdown all threads
-			exec.shutdownNow();
-			
-		}
-	}
 
 }
