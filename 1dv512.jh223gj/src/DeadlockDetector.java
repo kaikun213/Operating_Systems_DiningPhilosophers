@@ -39,4 +39,9 @@ public class DeadlockDetector {
 	    this.scheduler.scheduleAtFixedRate(
 	    this.deadlockCheck, this.period, this.period, this.unit);
 	  }
+	  
+	  public void terminate(int milliseconds) throws InterruptedException{
+		  scheduler.shutdown();
+		  this.scheduler.awaitTermination(milliseconds, TimeUnit.MILLISECONDS);
+	  }
 }

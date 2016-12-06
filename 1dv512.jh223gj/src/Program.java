@@ -4,7 +4,7 @@ public class Program {
 
 	public static void main(String[] args) {
 		DiningPhilosopher dp = new DiningPhilosopher();
-		dp.setSimulationTime(100);
+		dp.setSimulationTime(1000000);
 		dp.initialize();
 		dp.start();
 		ArrayList<Philosopher> philosophers = dp.getPhilosophers();
@@ -23,8 +23,4 @@ public class Program {
 		}
 	}
 	
-	// Problems:
-	// (1) Deadlock check is not correct yet - should be periodically in each thread e.g. https://dzone.com/articles/how-detect-java-deadlocks
-	// (1) or check hungry-times
-	// (2) Exec.Threads do not shutdown -> endless whileloop will always continue and write into log file.
 }

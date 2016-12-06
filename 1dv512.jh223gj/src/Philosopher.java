@@ -66,6 +66,13 @@ public class Philosopher {
 	}
 	public void increaseHungryTime(int i){
 		numberOfHungryTime += i;
+		try {
+			synchronized (logFile){
+				log.write((System.currentTimeMillis()-startTime) + "ms : Philosopher_"+id+" was " + State.HUNGRY + " for " + i + "\n");
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	public void think(){

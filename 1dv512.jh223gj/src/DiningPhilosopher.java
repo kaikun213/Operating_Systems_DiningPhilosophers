@@ -9,7 +9,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-public class DiningPhilosopher {
+public class DiningPhilosopher implements IDeadlockObserver {
 	
 	// Philosopher & Chopstick ids are the position in the list.
 	private ArrayList<Philosopher> philosophers;
@@ -37,7 +37,7 @@ public class DiningPhilosopher {
 	
 	public void initialize(){
 		// initialize philosophers with random seeds and chopsticks
-		Random rand = new Random();
+		Random rand = new Random(System.currentTimeMillis());
 		for (int i=0;i<5;i++){
 			philosophers.add(new Philosopher(i+1));
 			philosophers.get(i).setSeed(rand.nextLong());
@@ -46,7 +46,9 @@ public class DiningPhilosopher {
 		// initialize threads
 		exec = Executors.newFixedThreadPool(5);
 		//initialize deadlockhandler
-		deadlockDetector = new DeadlockDetector(new DeadlockConsoleHandler(), 5, TimeUnit.SECONDS);
+		IDeadlockHandler deadlockHandler = new DeadlockConsoleHandler();
+		deadlockHandler.addSubscriber(this);
+		deadlockDetector = new DeadlockDetector(deadlockHandler, 10, TimeUnit.MILLISECONDS);
 		// initialize logfile
 		try {
 			// clear content for new logs
@@ -68,8 +70,8 @@ public class DiningPhilosopher {
 			exec.submit(new RunnablePhilosopher(philosophers.get(i)) {
 				public void run(){
 					// my code (process each thread - think, eat ..)
-					//while ((System.currentTimeMillis()-Philosopher.startTime) <= simulationTime) {			// loop until termination 
-					while (true){
+					while ((System.currentTimeMillis()-Philosopher.startTime) <= simulationTime) {			// loop until termination 
+					//while (true){
 					process(philosopher);	// process philosopher i
 					}
 				}
@@ -83,8 +85,21 @@ public class DiningPhilosopher {
 		try {
 			// waits simulationTime to finish the tasks
 			exec.awaitTermination(simulationTime, TimeUnit.MILLISECONDS); 
+			deadlockDetector.terminate(simulationTime + 1000);
 		} catch (InterruptedException e) {
-			// e.printStackTrace(); sleep threads will be interrupted
+			e.printStackTrace(); //sleep threads will be interrupted
+		}
+	}
+	
+	@Override
+	public void deadlockOccoured() {
+		// shutdown philosopher threads now
+		exec.shutdownNow();
+		try {
+			// shutdown deadlockDetector thread now
+			deadlockDetector.terminate(0);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
 		}
 	}
 	
@@ -100,9 +115,9 @@ public class DiningPhilosopher {
 			
 			// calculate hungry time
 			hungryStartTime = System.nanoTime();
-			synchronized (aquireChopstick(philosopher.getId()-1)){	// -1 for correct position
+			synchronized (aquireChopstick(philosopher.getId()-1)){	// -1 for correct position -> left chopstick first
 				
-				synchronized (aquireChopstick(philosopher.getId())){
+				synchronized (aquireChopstick(philosopher.getId())){	// -> right chopstick
 					hungryEndTime = System.nanoTime();
 					// calculate nanoTime to millis	=> cut long to int (not 100% precise but ok since simulation time not larger then int)
 					philosopher.increaseHungryTime((int)Math.round((hungryEndTime-hungryStartTime)/1000000));
@@ -117,6 +132,5 @@ public class DiningPhilosopher {
 		if (i>=chopsticks.size()) i = i%chopsticks.size();
 		return (chopsticks.get(i));
 	}
-	
 
 }
