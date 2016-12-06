@@ -4,7 +4,9 @@ import java.io.PrintWriter;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadMXBean;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -93,14 +95,45 @@ public class DiningPhilosopher implements IDeadlockObserver {
 	
 	@Override
 	public void deadlockOccoured() {
-		// shutdown philosopher threads now
-		exec.shutdownNow();
+		System.out.println("Deadlock occoured and shutdown-service in DiningPhilosopher-class is called\n");
+		// 	Shutdown philosopher threads now
+		/* 	There are no guarantees beyond best-effort attempts to stop processing actively executing tasks.
+			For example, typical implementations will cancel via Thread.interrupt,
+		 	so any task that fails to respond to interrupts may never terminate. */
 		try {
+			exec.shutdown();
+	        if (!exec.awaitTermination(0, TimeUnit.MICROSECONDS)) { 
+	            System.out.println("\nExecutor did not terminate in the specified time."); 
+	            List<Runnable> droppedTasks = exec.shutdownNow(); 
+	            System.out.println("Executor was abruptly shut down. " + droppedTasks.size() + " tasks will not be executed.\n");
+	        }
 			// shutdown deadlockDetector thread now
 			deadlockDetector.terminate(0);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
+		
+		// If shutdown did not succeed properly -> exit JVM (to avoid endless running)
+		Set<Thread> threadSet = Thread.getAllStackTraces().keySet();
+		// terminate JVM because some threads can not be terminated.
+		boolean terminate = false;
+		if (threadSet.size() > 1) {
+			for (Thread t : threadSet) {
+				System.out.println(t.getName() + " is still alive: " + t.isAlive());
+				// if the thread is still alive but not a daemon or the main-thread then we need to terminate the JVM.
+				if (!t.isDaemon()) {
+					if (!t.getName().equals("main")){
+						terminate = true;
+					}
+				}
+			}
+		}
+		
+		if (terminate) {
+			System.out.println("\nTerminate program abruptly. Deadlocked threads did not terminate normally.");
+			System.exit(1);
+		}
+
 	}
 	
 	
@@ -116,7 +149,6 @@ public class DiningPhilosopher implements IDeadlockObserver {
 			// calculate hungry time
 			hungryStartTime = System.nanoTime();
 			synchronized (aquireChopstick(philosopher.getId()-1)){	// -1 for correct position -> left chopstick first
-				
 				synchronized (aquireChopstick(philosopher.getId())){	// -> right chopstick
 					hungryEndTime = System.nanoTime();
 					// calculate nanoTime to millis	=> cut long to int (not 100% precise but ok since simulation time not larger then int)

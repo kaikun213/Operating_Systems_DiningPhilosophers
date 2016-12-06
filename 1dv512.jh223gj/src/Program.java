@@ -4,7 +4,7 @@ public class Program {
 
 	public static void main(String[] args) {
 		DiningPhilosopher dp = new DiningPhilosopher();
-		dp.setSimulationTime(1000000);
+		dp.setSimulationTime(10000);
 		dp.initialize();
 		dp.start();
 		ArrayList<Philosopher> philosophers = dp.getPhilosophers();
@@ -21,6 +21,7 @@ public class Program {
 			System.out.println("Philosopher " + p.getId() + "'s hungry times: \t\t" + p.getNumberOfHungry());
 			System.out.println("Philosopher " + p.getId() + "'s hungry time: \t\t" + p.getNumberOfHungryTime()+ "\n");
 		}
+		
 	}
 	
 }
